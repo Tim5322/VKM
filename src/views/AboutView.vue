@@ -1,15 +1,16 @@
+<script setup lang="ts">
+import TheWelcome from '../components/TheWelcome.vue'
+</script>
+
 <template>
-  <div class="about">
-    <h1>This is an about page</h1>
+  <div class="register-page">
+    <TheWelcome />
   </div>
 </template>
 
 <style>
-@media (min-width: 1024px) {
-  .about {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-  }
+.register-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 </style>
