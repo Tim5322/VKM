@@ -23,7 +23,7 @@ const logout = () => {
       <div class="nav-container">
         <!-- Logo/Brand -->
         <RouterLink to="/" class="nav-brand">
-          <h2>VKM Portal</h2>
+          <h2>Keuzemodules</h2>
         </RouterLink>
 
         <!-- Navigatie links -->
@@ -38,8 +38,8 @@ const logout = () => {
           
           <!-- Als wel ingelogd -->
           <template v-else>
-            <RouterLink to="/dashboard" class="nav-link">Dashboard</RouterLink>
-            <RouterLink to="/modules" class="nav-link">Modules</RouterLink>
+            <RouterLink to="/favorieten" class="nav-link">Favorieten</RouterLink>
+            <RouterLink to="/keuzemodules" class="nav-link">Keuzemodules</RouterLink>
             <button @click="logout" class="nav-link nav-logout">Uitloggen</button>
           </template>
         </div>

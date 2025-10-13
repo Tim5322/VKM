@@ -9,12 +9,12 @@ const isLoggedIn = () => {
 }
 
 // Navigatie functies
-const goToModules = () => {
-  router.push('/modules')
+const goToKeuzemodules = () => {
+  router.push('/keuzemodules')
 }
 
-const goToDashboard = () => {
-  router.push('/dashboard')
+const goToFavorieten = () => {
+  router.push('/favorieten')
 }
 </script>
 
@@ -25,16 +25,16 @@ const goToDashboard = () => {
       <div class="hero-content">
         <h1 class="hero-title">Vrije Keuze Modules</h1>
         <p class="hero-subtitle">
-          Verbreed je horizon met ons diverse aanbod aan keuzemodules
+          Op deze site vind je alle keuzemodules die je dit jaar kan kiezen, neem je tijd en kijk rond.
         </p>
         
         <!-- Als ingelogd -->
         <div v-if="isLoggedIn()" class="hero-actions">
-          <button @click="goToDashboard" class="btn btn-primary">
-            Naar Dashboard
+          <button @click="goToFavorieten" class="btn btn-primary">
+            Mijn Favorieten
           </button>
-          <button @click="goToModules" class="btn btn-secondary">
-            Bekijk Modules
+          <button @click="goToKeuzemodules" class="btn btn-secondary">
+            Bekijk Keuzemodules
           </button>
         </div>
         
@@ -53,24 +53,28 @@ const goToDashboard = () => {
     <!-- Info sectie -->
     <section class="info-section">
       <div class="container">
-        <h2>Waarom VKM?</h2>
+        <h2>Ontdek Keuzemodules</h2>
+        <p class="info-description">
+          Bekijk ons overzicht van beschikbare vrije keuzemodules. 
+          Vind de module die bij jou past en schrijf je direct in.
+        </p>
         <div class="features">
           <div class="feature-card">
-            <div class="feature-icon">🎓</div>
-            <h3>Breed Aanbod</h3>
-            <p>Kies uit modules van verschillende opleidingen en disciplines.</p>
+            <div class="feature-icon">📋</div>
+            <h3>Overzichtelijke Lijst</h3>
+            <p>Alle beschikbare keuzemodules op één plek, makkelijk te vergelijken.</p>
           </div>
           
           <div class="feature-card">
-            <div class="feature-icon">⏰</div>
-            <h3>Flexibel</h3>
-            <p>Plan je modules volgens jouw schema en voorkeuren.</p>
+            <div class="feature-icon">📍</div>
+            <h3>Locatie Info</h3>
+            <p>Zie direct waar elke module wordt gegeven: Den Bosch, Breda of Tilburg.</p>
           </div>
           
           <div class="feature-card">
-            <div class="feature-icon">🏆</div>
-            <h3>Studiepunten</h3>
-            <p>Verdien waardevolle studiepunten en verrijk je CV.</p>
+            <div class="feature-icon">📚</div>
+            <h3>Leeruitkomsten</h3>
+            <p>Krijg meteen informatie over de leeruitkomsten van de keuzemodule en weet wat je te wachten staat.</p>
           </div>
         </div>
       </div>
@@ -79,7 +83,7 @@ const goToDashboard = () => {
     <!-- CTA sectie (alleen als niet ingelogd) -->
     <section v-if="!isLoggedIn()" class="cta-section">
       <div class="container">
-        <h2>Klaar om te beginnen?</h2>
+        <h2>Wil jij zien welke keuzemodules er zijn?</h2>
         <p>Maak vandaag nog een account aan en ontdek ons modulenaanbod.</p>
         <router-link to="/register" class="btn btn-large btn-primary">
           Registreer Nu
@@ -186,7 +190,16 @@ const goToDashboard = () => {
   text-align: center;
   font-size: 2.5rem;
   color: #333;
-  margin-bottom: 3rem;
+  margin-bottom: 1.5rem;
+}
+
+.info-description {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+  line-height: 1.6;
+  max-width: 600px;
+  margin: 0 auto 3rem;
 }
 
 .features {
