@@ -18,14 +18,12 @@ const formData = reactive({
 const isLoading = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
+const showPassword = ref(false)
 
 // Beschikbare opleidingen
 const opleidingen = [
   'Informatica',
-  'Bedrijfskunde',
-  'Technische Informatica',
-  'Game Development',
-  'Cyber Security'
+  'Technische Informatica'
 ]
 
 // Registratie functie
@@ -55,7 +53,7 @@ const handleRegister = async () => {
       opleiding: formData.opleiding
     }, { skipAuth: true })
     
-    successMessage.value = 'Registratie succesvol! Je wordt doorgestuurd naar de inlog pagina.'
+    successMessage.value = 'Registratie succesvol!'
     
     // Na 2 seconden doorsturen naar login
     setTimeout(() => {
@@ -133,10 +131,18 @@ const goToLogin = () => {
             id="password"
             v-model="formData.password"
             @input="clearMessages"
-            type="password" 
+            :type="showPassword ? 'text' : 'password'" 
             placeholder="Minimaal 6 karakters"
             required
           />
+          <div class="password-toggle">
+            <input 
+              type="checkbox" 
+              id="show-password"
+              v-model="showPassword"
+            />
+            <label for="show-password" class="checkbox-label">Wachtwoord tonen</label>
+          </div>
         </div>
 
         <!-- Studentnummer -->
@@ -317,6 +323,31 @@ const goToLogin = () => {
 
 .link-btn:hover {
   text-decoration: underline;
+}
+
+/* Password toggle styling */
+.password-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.password-toggle input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.checkbox-label {
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-label:hover {
+  color: #667eea;
 }
 
 @media (max-width: 768px) {

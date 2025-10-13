@@ -14,6 +14,7 @@ const formData = reactive({
 // Form state
 const isLoading = ref(false)
 const errorMessage = ref('')
+const showPassword = ref(false)
 
 // Login functie
 const handleLogin = async () => {
@@ -104,10 +105,18 @@ const goToRegister = () => {
             id="password"
             v-model="formData.password"
             @input="clearMessages"
-            type="password" 
+            :type="showPassword ? 'text' : 'password'" 
             placeholder="Voer je wachtwoord in"
             required
           />
+          <div class="password-toggle">
+            <input 
+              type="checkbox" 
+              id="show-password"
+              v-model="showPassword"
+            />
+            <label for="show-password" class="checkbox-label">Wachtwoord tonen</label>
+          </div>
         </div>
 
         <!-- Submit Button -->
@@ -252,6 +261,31 @@ const goToRegister = () => {
 
 .link-btn:hover {
   text-decoration: underline;
+}
+
+/* Password toggle styling */
+.password-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.password-toggle input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.checkbox-label {
+  font-size: 0.9rem;
+  color: #666;
+  cursor: pointer;
+  font-weight: normal;
+}
+
+.checkbox-label:hover {
+  color: #667eea;
 }
 
 @media (max-width: 768px) {
