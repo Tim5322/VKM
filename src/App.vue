@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { RouterLink, RouterView, useRouter } from 'vue-router'
-import { ref, computed } from 'vue'
+import { useAuth } from './composables/useAuth'
 
 const router = useRouter()
-
-// Check of gebruiker is ingelogd
-const isLoggedIn = computed(() => {
-  return localStorage.getItem('authToken') !== null
-})
+const { isLoggedIn, removeToken } = useAuth()
 
 // Logout functie
 const logout = () => {
-  localStorage.removeItem('authToken')
+  removeToken()
   router.push('/')
 }
 </script>

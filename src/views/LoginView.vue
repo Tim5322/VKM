@@ -2,8 +2,10 @@
 import { ref, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ApiService } from '../services/vkm-api.service'
+import { useAuth } from '@/composables/useAuth'
 
 const router = useRouter()
+const { setToken } = useAuth()
 
 // Login form data
 const formData = reactive({
@@ -43,7 +45,7 @@ const handleLogin = async () => {
     // Token opslaan (JWT)
     if (response.data && (response.data.token || response.data.access_token)) {
       const token = response.data.token || response.data.access_token
-      localStorage.setItem('authToken', token)
+      setToken(token)
       
       // Redirect naar dashboard of gewenste pagina
       router.push('/')

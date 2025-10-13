@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
+import { useAuth } from '@/composables/useAuth'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -27,22 +28,34 @@ const router = createRouter({
       // which is lazy-loaded when the route is visited.
       component: () => import('../views/AboutView.vue'),
     },
+    {
+      path: '/favorieten',
+      name: 'favorieten',
+      component: () => import('../views/FavorietenView.vue'),
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/keuzemodules',
+      name: 'keuzemodules', 
+      component: () => import('../views/KeuzeModulesView.vue'),
+      meta: { requiresAuth: true }
+    },
   ],
 })
 
 // Route guard voor authenticatie
 router.beforeEach((to, from, next) => {
-  const isLoggedIn = localStorage.getItem('authToken') !== null
+  const { isLoggedIn } = useAuth()
   
-  // Routes die authenticatie vereisen
-  const requiresAuth = ['dashboard'] // Voeg hier routes toe die login vereisen
+  // Check of route authenticatie vereist
+  const requiresAuth = to.meta?.requiresAuth === true
   
   // Als route authenticatie vereist maar gebruiker niet ingelogd
-  if (requiresAuth.includes(to.name as string) && !isLoggedIn) {
+  if (requiresAuth && !isLoggedIn.value) {
     next('/login')
   } 
   // Als gebruiker ingelogd is en naar login/register gaat, redirect naar home
-  else if (isLoggedIn && (to.name === 'login' || to.name === 'register')) {
+  else if (isLoggedIn.value && (to.name === 'login' || to.name === 'register')) {
     next('/')
   } 
   else {

@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import { useAuth } from '../composables/useAuth'
 
 const router = useRouter()
-
-// Check of gebruiker is ingelogd
-const isLoggedIn = () => {
-  return localStorage.getItem('authToken') !== null
-}
+const { isLoggedIn } = useAuth()
 
 // Navigatie functies
 const goToKeuzemodules = () => {
@@ -29,7 +26,7 @@ const goToFavorieten = () => {
         </p>
         
         <!-- Als ingelogd -->
-        <div v-if="isLoggedIn()" class="hero-actions">
+        <div v-if="isLoggedIn" class="hero-actions">
           <button @click="goToFavorieten" class="btn btn-primary">
             Mijn Favorieten
           </button>
@@ -81,7 +78,7 @@ const goToFavorieten = () => {
     </section>
 
     <!-- CTA sectie (alleen als niet ingelogd) -->
-    <section v-if="!isLoggedIn()" class="cta-section">
+    <section v-if="!isLoggedIn" class="cta-section">
       <div class="container">
         <h2>Wil jij zien welke keuzemodules er zijn?</h2>
         <p>Maak vandaag nog een account aan en ontdek ons modulenaanbod.</p>
