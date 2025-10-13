@@ -10,6 +10,16 @@ const router = createRouter({
       component: HomeView,
     },
     {
+      path: '/login',
+      name: 'login',
+      component: () => import('../views/LoginView.vue'),
+    },
+    {
+      path: '/register',
+      name: 'register',
+      component: () => import('../views/RegisterView.vue'),
+    },
+    {
       path: '/about',
       name: 'about',
       // route level code-splitting
@@ -18,6 +28,26 @@ const router = createRouter({
       component: () => import('../views/AboutView.vue'),
     },
   ],
+})
+
+// Route guard voor authenticatie
+router.beforeEach((to, from, next) => {
+  const isLoggedIn = localStorage.getItem('authToken') !== null
+  
+  // Routes die authenticatie vereisen
+  const requiresAuth = ['dashboard'] // Voeg hier routes toe die login vereisen
+  
+  // Als route authenticatie vereist maar gebruiker niet ingelogd
+  if (requiresAuth.includes(to.name as string) && !isLoggedIn) {
+    next('/login')
+  } 
+  // Als gebruiker ingelogd is en naar login/register gaat, redirect naar home
+  else if (isLoggedIn && (to.name === 'login' || to.name === 'register')) {
+    next('/')
+  } 
+  else {
+    next()
+  }
 })
 
 export default router

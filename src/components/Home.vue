@@ -1,40 +1,21 @@
-<script setup lang="ts">
-import { useRouter } from 'vue-router'
-
-defineProps<{
-  msg: string
-}>()
-
-const router = useRouter()
-
-// Navigeer naar registratie pagina
-const goToRegister = () => {
-  router.push('/about') // About page wordt onze registratie pagina
-}
-</script>
-
 <template>
-  <div class="homepage">
-    <div class="hero-section">
-      <h1 class="title">{{ msg }}</h1>
-      <p class="subtitle">
-        Ontdek onze vrije keuze modules en verbreed je kennis!
-      </p>
-      <button @click="goToRegister" class="register-btn">
-        Registreren voor VKM
-      </button>
-    </div>
-
-    <div class="info-section">
-      <h2>Over VKM</h2>
-      <p>
-        Vrije Keuze Modules (VKM) zijn een uitstekende manier om je horizon te verbreden 
-        en vaardigheden te ontwikkelen buiten je hoofdopleiding. Kies uit ons diverse aanbod 
-        en maak je studieprogramma compleet!
-      </p>
-    </div>
+  <div class="home-component">
+    <!-- Dit component is verplaatst naar views/HomeView.vue -->
+    <!-- De homepage content staat nu direct in HomeView.vue -->
+    <p>Dit component is verplaatst naar HomeView. De homepage content staat nu direct in de view.</p>
   </div>
 </template>
+
+<style scoped>
+.home-component {
+  padding: 2rem;
+  text-align: center;
+  color: #666;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin: 1rem;
+}
+</style>
 
 <style scoped>
 .homepage {

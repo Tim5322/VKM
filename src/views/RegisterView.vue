@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
 import { ApiService } from '../services/vkm-api.service'
+
+const router = useRouter()
 
 // Registratie form data
 const formData = reactive({
@@ -50,18 +53,14 @@ const handleRegister = async () => {
       naam: formData.naam,
       studentnummer: formData.studentnummer,
       opleiding: formData.opleiding
-    })
+    }, { skipAuth: true })
     
-    successMessage.value = 'Registratie succesvol! Je kunt nu inloggen.'
+    successMessage.value = 'Registratie succesvol! Je wordt doorgestuurd naar de inlog pagina.'
     
-    // Reset form
-    Object.assign(formData, {
-      email: '',
-      password: '',
-      naam: '',
-      studentnummer: '',
-      opleiding: 'Informatica'
-    })
+    // Na 2 seconden doorsturen naar login
+    setTimeout(() => {
+      router.push('/login')
+    }, 2000)
     
   } catch (error) {
     console.error('Registratie error:', error)
@@ -75,6 +74,11 @@ const handleRegister = async () => {
 const clearMessages = () => {
   errorMessage.value = ''
   successMessage.value = ''
+}
+
+// Navigeer naar login
+const goToLogin = () => {
+  router.push('/login')
 }
 </script>
 
@@ -104,7 +108,7 @@ const clearMessages = () => {
             v-model="formData.naam"
             @input="clearMessages"
             type="text" 
-            placeholder="Name"
+            placeholder="Voer je volledige naam in"
             required
           />
         </div>
@@ -117,7 +121,7 @@ const clearMessages = () => {
             v-model="formData.email"
             @input="clearMessages"
             type="email" 
-            placeholder="Email"
+            placeholder="Voer je email in"
             required
           />
         </div>
@@ -143,7 +147,7 @@ const clearMessages = () => {
             v-model="formData.studentnummer"
             @input="clearMessages"
             type="text" 
-            placeholder="Studentnummer"
+            placeholder="Voer je studentnummer in"
             required
           />
         </div>
@@ -176,7 +180,9 @@ const clearMessages = () => {
       </form>
 
       <div class="register-footer">
-        <p>Heb je al een account? <router-link to="/">Ga naar de homepage</router-link></p>
+        <p>Heb je al een account? 
+          <button @click="goToLogin" class="link-btn">Log hier in</button>
+        </p>
       </div>
     </div>
   </div>
@@ -299,13 +305,17 @@ const clearMessages = () => {
   border-top: 1px solid #e1e5e9;
 }
 
-.register-footer a {
+.link-btn {
+  background: none;
+  border: none;
   color: #667eea;
   text-decoration: none;
   font-weight: 600;
+  cursor: pointer;
+  font-size: inherit;
 }
 
-.register-footer a:hover {
+.link-btn:hover {
   text-decoration: underline;
 }
 
