@@ -73,70 +73,15 @@ const goToRegister = () => {
 </script>
 
 <template>
-  <div class="login-container">
-    <div class="login-card">
-      <div class="login-header">
-        <h1>Inloggen bij VKM</h1>
-        <p>Log in om toegang te krijgen tot je keuzemodules</p>
-      </div>
-
-      <form @submit.prevent="handleLogin" class="login-form">
-        
-        <!-- Error Message -->
-        <div v-if="errorMessage" class="message error-message">
-          {{ errorMessage }}
-        </div>
-
-        <!-- Email -->
-        <div class="form-group">
-          <label for="email">Email adres</label>
-          <input 
-            id="email"
-            v-model="formData.email"
-            @input="clearMessages"
-            type="email" 
-            placeholder="Voer je email in"
-            required
-          />
-        </div>
-
-        <!-- Wachtwoord -->
-        <div class="form-group">
-          <label for="password">Wachtwoord</label>
-          <input 
-            id="password"
-            v-model="formData.password"
-            @input="clearMessages"
-            :type="showPassword ? 'text' : 'password'" 
-            placeholder="Voer je wachtwoord in"
-            required
-          />
-          <div class="password-toggle">
-            <input 
-              type="checkbox" 
-              id="show-password"
-              v-model="showPassword"
-            />
-            <label for="show-password" class="checkbox-label">Wachtwoord tonen</label>
-          </div>
-        </div>
-
-        <!-- Submit Button -->
-        <button 
-          type="submit" 
-          class="login-btn"
-          :disabled="isLoading"
-        >
-          <span v-if="isLoading">Inloggen...</span>
-          <span v-else>Inloggen</span>
-        </button>
-
-      </form>
-
-      <div class="login-footer">
-        <p>Nog geen account? 
-          <button @click="goToRegister" class="link-btn">Registreer hier</button>
-        </p>
+  <div class="login-view">
+    <div class="login-container">
+      <LoginForm 
+        ref="loginForm"
+        @submit="handleLogin" 
+      />
+      
+      <div class="register-link">
+        <p>Nog geen account? <RouterLink to="/register">Registreer hier</RouterLink></p>
       </div>
     </div>
   </div>

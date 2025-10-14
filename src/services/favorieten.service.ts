@@ -5,7 +5,7 @@ import type { iVkm } from '@/vkm/iVkm'
 export class FavorietenService {
   private static readonly endpoint = '/favorieten'
 
-  // Voeg keuzemodule toe aan favorieten
+  // Voeg keuzemodule toe aan favorieten van ingelogde student
   static async addFavoriet(keuzemoduleId: number): Promise<void> {
     try {
       await ApiService.put(`${this.endpoint}/${keuzemoduleId}`, {})
@@ -20,7 +20,7 @@ export class FavorietenService {
     }
   }
 
-  // Verwijder keuzemodule uit favorieten
+  // Verwijder keuzemodule uit favorieten van ingelogde student
   static async removeFavoriet(keuzemoduleId: number): Promise<void> {
     try {
       await ApiService.delete(`${this.endpoint}/${keuzemoduleId}`)
@@ -30,41 +30,52 @@ export class FavorietenService {
     }
   }
 
-  // Haal alle favorieten op
-  static async getFavorieten(): Promise<iVkm[]> {
+  // Haal favoriet IDs op van ingelogde student
+  static async getFavorietenIds(): Promise<number[]> {
     try {
       const response = await ApiService.get(this.endpoint)
-      const favorietenData = response?.data || []
+      const data = response?.data
       
-      // Als we alleen IDs krijgen, haal volledige data op
-      if (favorietenData.length > 0 && typeof favorietenData[0] === 'number') {
-        const allModules = await KeuzeModulesService.getAllKeuzeModules()
-        return allModules.filter(module => favorietenData.includes(module.id))
+      // Zorg ervoor dat we altijd een array krijgen
+      if (Array.isArray(data)) {
+        return data
       }
       
-      // Als we al volledige keuzemodule data hebben
-      return favorietenData
+      // Als data geen array is, probeer het te converteren
+      if (data && typeof data === 'object') {
+        // Misschien is het een object met een favorieten property
+        if (Array.isArray(data.favorieten)) {
+          return data.favorieten
+        }
+      }
+      
+      console.warn('Expected array from favorieten endpoint, got:', typeof data, data)
+      return []
     } catch (error) {
-      console.error('Error fetching favorieten:', error)
+      console.error('Error fetching favoriet IDs:', error)
       return []
     }
   }
 
-  // Haal alleen favoriet IDs op
-  static async getFavorietenIds(): Promise<number[]> {
+  // Haal volledige favoriet keuzemodules op (IDs + volledige data)
+  static async getFavorieten(): Promise<iVkm[]> {
     try {
-      const response = await ApiService.get(this.endpoint)
-      const favorietenData = response?.data || []
+      // Stap 1: Haal favoriet IDs op van ingelogde student
+      const favorietIds = await this.getFavorietenIds()
       
-      // Als we volledige keuzemodule data krijgen
-      if (favorietenData.length > 0 && favorietenData[0]?.id) {
-        return favorietenData.map((fav: iVkm) => fav.id)
+      if (favorietIds.length === 0) {
+        return []
       }
       
-      // Als we alleen IDs krijgen
-      return favorietenData
+      // Stap 2: Haal alle keuzemodules op
+      const allModules = await KeuzeModulesService.getAllKeuzeModules()
+      
+      // Stap 3: Filter alleen de favorieten
+      const favorietModules = allModules.filter(module => favorietIds.includes(module.id))
+      
+      return favorietModules
     } catch (error) {
-      console.error('Error fetching favoriet IDs:', error)
+      console.error('Error fetching favorieten:', error)
       return []
     }
   }

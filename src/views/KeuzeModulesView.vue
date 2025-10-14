@@ -4,68 +4,27 @@
       <h1>Keuzemodules</h1>
       <p>Ontdek alle beschikbare keuzemodules en voeg ze toe aan je favorieten.</p>
       
-      <div class="filters">
-        <input 
-          v-model="searchQuery" 
-          type="text" 
-          placeholder="Zoek keuzemodules..." 
-          class="search-input"
-          @input="searchModules"
-        >
-        <select v-model="selectedLocation" class="filter-select" @change="searchModules">
-          <option value="">Alle locaties</option>
-          <option value="Den Bosch">Den Bosch</option>
-          <option value="Breda">Breda</option>
-          <option value="Tilburg">Tilburg</option>
-        </select>
-        <select v-model="selectedLevel" class="filter-select" @change="searchModules">
-          <option value="">Alle niveaus</option>
-          <option value="NLQF5">NLQF5</option>
-          <option value="NLQF6">NLQF6</option>
-        </select>
-        <select v-model="selectedCredits" class="filter-select" @change="searchModules">
-          <option value="">Alle studiepunten</option>
-          <option value="15">15 SP</option>
-          <option value="30">30 SP</option>
-        </select>
-      </div>
+      <!-- Gebruik het nieuwe SearchFilter component -->
+      <SearchFilter @search="handleSearch" />
       
-      <div class="loading" v-if="isLoading">
-        <p>Keuzemodules laden...</p>
-      </div>
+      <!-- Loading state met skeleton -->
+      <SkeletonGrid v-if="isLoading" :count="6" />
       
+      <!-- Error state -->
       <div class="error" v-else-if="error">
         <p>{{ error }}</p>
         <button @click="loadModules" class="btn btn-primary">Opnieuw proberen</button>
       </div>
       
+      <!-- Modules grid met nieuwe ModuleCard componenten -->
       <div class="modules-grid" v-else>
-        <div v-for="module in modules" :key="module._id" class="module-card">
-          <div class="module-header">
-            <h3>{{ module.name }}</h3>
-            <button 
-              @click="toggleFavoriet(module)"
-              :class="['favorite-btn', { 'is-favorite': module.isFavoriet }]"
-            >
-              ❤️
-            </button>
-          </div>
-          <p class="module-description">{{ module.shortdescription }}</p>
-          <div class="module-meta">
-            <span class="location-tag">📍 {{ module.location }}</span>
-            <span class="level-tag">🎓 {{ module.level }}</span>
-            <span class="credits">{{ module.studycredit }} SP</span>
-          </div>
-          <div class="module-actions">
-            <button @click="showModuleDetails(module)" class="btn btn-outline">Meer info</button>
-            <button 
-              @click="toggleFavoriet(module)"
-              :class="['btn', module.isFavoriet ? 'btn-danger' : 'btn-primary']"
-            >
-              {{ module.isFavoriet ? 'Verwijder uit favorieten' : 'Toevoegen aan favorieten' }}
-            </button>
-          </div>
-        </div>
+        <ModuleCard
+          v-for="module in modules" 
+          :key="module._id"
+          :module="module"
+          @toggle-favorite="toggleFavoriet"
+          @show-details="showModuleDetails"
+        />
       </div>
       
       <div v-if="!isLoading && !error && modules.length === 0" class="empty-state">
@@ -82,60 +41,121 @@ import { KeuzeModulesService } from '@/services/keuzemodules.service'
 import { FavorietenService } from '@/services/favorieten.service'
 import type { iVkm } from '@/vkm/iVkm'
 
+// Import componenten volgens Atomic Design
+import SearchFilter from '@/components/molecules/SearchFilter.vue'
+import ModuleCard from '@/components/organisms/ModuleCard.vue'
+import SkeletonGrid from '@/components/organisms/SkeletonGrid.vue'
+
 const modules = ref<iVkm[]>([])
 const isLoading = ref(true)
 const error = ref('')
-const searchQuery = ref('')
-const selectedLocation = ref('')
-const selectedLevel = ref('')
-const selectedCredits = ref('')
 const favorietenIds = ref<number[]>([])
 
-let searchTimeout: ReturnType<typeof setTimeout>
-
-const searchModules = () => {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(async () => {
-    await loadModules()
-  }, 300)
-}
-
-const loadModules = async () => {
-  isLoading.value = true
-  error.value = ''
-  
+// Nieuwe handleSearch functie voor SearchFilter component
+const handleSearch = async (filters: {
+  name?: string
+  location?: string
+  level?: string
+  studycredit?: number
+}) => {
   try {
-    console.log('🔄 Starting to load modules...')
+    isLoading.value = true
+    error.value = ''
     
-    // Test: Probeer gewoon alle keuzemodules op te halen
-    const result = await KeuzeModulesService.getAllKeuzeModules()
-    console.log('📊 Modules result:', result)
-    
-    if (!result || result.length === 0) {
-      console.warn('⚠️ No modules returned from API')
-      error.value = 'Geen keuzemodules gevonden.'
-      return
+    let result: iVkm[]
+    if (filters.name || filters.location || filters.level || filters.studycredit) {
+      result = await KeuzeModulesService.searchKeuzeModules(filters)
+    } else {
+      result = await KeuzeModulesService.getAllKeuzeModules()
     }
     
-    // Zet modules (zonder favorieten voor nu)
+    // Favoriet IDs ophalen
+    try {
+      favorietenIds.value = await FavorietenService.getFavorietenIds()
+      if (!Array.isArray(favorietenIds.value)) {
+        favorietenIds.value = []
+      }
+    } catch (favError) {
+      favorietenIds.value = []
+    }
+    
+    // Modules instellen met favoriet status
     modules.value = result.map(module => ({
       ...module,
-      isFavoriet: false // Voor nu gewoon alles op false
+      isFavoriet: Array.isArray(favorietenIds.value) && favorietenIds.value.includes(module.id)
     }))
     
-    console.log('✅ Modules loaded successfully:', modules.value.length)
-    
   } catch (err: any) {
-    console.error('❌ Error loading modules:', err)
+    console.error('Error loading modules:', err)
     error.value = `Fout bij laden keuzemodules: ${err.message || 'Onbekende fout'}`
   } finally {
     isLoading.value = false
   }
 }
 
+const loadModules = async () => {
+  await handleSearch({}) // Laad alle modules zonder filters
+}
+
 const toggleFavoriet = async (module: iVkm) => {
-  alert('Favorieten functionaliteit tijdelijk uitgeschakeld voor debugging')
-  console.log('Favoriet toggle disabled for debugging:', module.name)
+  try {
+    console.log('❤️ Toggling favoriet for:', module.name, 'ID:', module.id)
+    
+    const oldStatus = module.isFavoriet || false
+    
+    // Check voor maximum van 5 favorieten bij toevoegen
+    if (!oldStatus) {
+      // Controleer huidige favorieten count
+      const currentFavorites = modules.value.filter(m => m.isFavoriet).length
+      if (currentFavorites >= 5) {
+        alert('Je kunt maximaal 5 favorieten hebben! Verwijder eerst een favoriet voordat je een nieuwe toevoegt.')
+        return // Stop hier, geen API call en geen UI update
+      }
+    }
+    
+    // Doe de API call EERST voordat we de UI updaten
+    if (oldStatus) {
+      // Verwijderen uit favorieten: DELETE /favorieten/:id
+      console.log('🗑️ Removing from favorites...')
+      await FavorietenService.removeFavoriet(module.id)
+    } else {
+      // Toevoegen aan favorieten: PUT /favorieten/:id
+      console.log('➕ Adding to favorites...')
+      await FavorietenService.addFavoriet(module.id)
+    }
+    
+    // Alleen als de API call succesvol was, update dan de UI
+    module.isFavoriet = !oldStatus
+    
+    // Update favorietenIds array (met veiligheidscheck)
+    if (!Array.isArray(favorietenIds.value)) {
+      favorietenIds.value = []
+    }
+    
+    if (module.isFavoriet) {
+      if (!favorietenIds.value.includes(module.id)) {
+        favorietenIds.value.push(module.id)
+      }
+    } else {
+      favorietenIds.value = favorietenIds.value.filter(id => id !== module.id)
+    }
+    
+    console.log('✅ Favoriet toggle successful, UI updated')
+    
+  } catch (error: any) {
+    console.error('❌ Error toggling favoriet:', error)
+    
+    // Als er een error is, herstel de originele staat
+    // (de UI is nog niet geüpdatet omdat we dat pas na succesvolle API call doen)
+    
+    if (error.message?.includes('409')) {
+      alert('Deze module staat al in je favorieten!')
+    } else if (error.message?.includes('400') && error.message?.includes('maximum')) {
+      alert('Je kunt maximaal 5 favorieten hebben!')
+    } else {
+      alert('Er is een fout opgetreden bij het beheren van favorieten: ' + (error.message || 'Onbekende fout'))
+    }
+  }
 }
 
 const showModuleDetails = (module: iVkm) => {
@@ -148,6 +168,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
+/* Alleen nog basis layout - alle component styling zit in de componenten! */
 .keuzemodules-view {
   padding: 2rem 0;
 }
@@ -163,39 +184,17 @@ h1 {
   margin-bottom: 1rem;
 }
 
-.filters {
-  display: flex;
-  gap: 1rem;
-  margin: 2rem 0;
-  flex-wrap: wrap;
-}
-
-.search-input {
-  flex: 1;
-  min-width: 250px;
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-}
-
-.filter-select {
-  padding: 0.75rem;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 1rem;
-  background: white;
-  min-width: 150px;
-}
-
-.loading, .error {
+.error {
   text-align: center;
   padding: 3rem;
-  color: #6c757d;
+  color: #dc3545;
 }
 
-.error {
-  color: #dc3545;
+.modules-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
 }
 
 .empty-state {
@@ -206,130 +205,27 @@ h1 {
   margin-top: 2rem;
 }
 
-.modules-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 1.5rem;
-  margin-top: 2rem;
-}
-
-.module-card {
-  background: white;
-  border: 1px solid #e9ecef;
-  border-radius: 8px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.module-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.module-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.module-header h3 {
-  color: #2c3e50;
-  margin: 0;
-  flex: 1;
-}
-
-.favorite-btn {
-  background: none;
-  border: none;
-  font-size: 1.2rem;
-  cursor: pointer;
-  padding: 0.25rem;
-  opacity: 0.5;
-  transition: opacity 0.2s;
-}
-
-.favorite-btn:hover,
-.favorite-btn.is-favorite {
-  opacity: 1;
-}
-
-.module-description {
-  color: #6c757d;
-  margin-bottom: 1rem;
-  line-height: 1.5;
-}
-
-.module-meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.location-tag,
-.level-tag {
-  background: #e9ecef;
-  color: #495057;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
-  font-size: 0.8rem;
-}
-
-.credits {
-  color: #6c757d;
-  font-weight: 500;
-  margin-left: auto;
-}
-
-.module-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-}
-
 .btn {
   padding: 0.5rem 1rem;
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
   font-size: 0.9rem;
   transition: all 0.2s;
-  flex: 1;
-  text-align: center;
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #007bff;
   color: white;
 }
 
 .btn-primary:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  background: #0056b3;
 }
 
-.btn-danger {
-  background: #dc3545;
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #c82333;
-}
-
-.btn-outline {
-  background: transparent;
-  color: #667eea;
-  border: 1px solid #667eea;
-}
-
-.btn-outline:hover {
-  background: #667eea;
-  color: white;
+@media (max-width: 768px) {
+  .modules-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
