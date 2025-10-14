@@ -22,10 +22,11 @@
       </div>
       
       <div class="favorieten-grid" v-else>
-        <FavoriteModuleCard
+        <ModuleCard
           v-for="favoriet in favorieten" 
           :key="favoriet._id"
           :module="favoriet"
+          variant="favorite"
           @remove-favorite="removeFavoriet"
         />
       </div>
@@ -40,7 +41,7 @@ import { FavorietenService } from '@/services/favorieten.service'
 import type { iVkm } from '@/vkm/iVkm'
 
 // Import Atomic Design componenten
-import FavoriteModuleCard from '@/components/organisms/FavoriteModuleCard.vue'
+import ModuleCard from '@/components/organisms/ModuleCard.vue'
 
 const favorieten = ref<iVkm[]>([])
 const isLoading = ref(true)

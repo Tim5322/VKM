@@ -1,7 +1,7 @@
 // Environment configuration voor VKM app
 export const config = {
-  // NestJS Backend URL (waar je API draait)
-  backendUrl: import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000',
+  // NestJS Backend URL (MOET via environment variabele worden ingesteld)
+  backendUrl: import.meta.env.VITE_BACKEND_URL!,
   
   // Development settings
   isDevelopment: import.meta.env.VITE_DEV_MODE === 'true',

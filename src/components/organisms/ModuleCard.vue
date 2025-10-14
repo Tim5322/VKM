@@ -1,11 +1,14 @@
 <template>
-  <div class="module-card">
+  <div :class="['module-card', { 'is-favorite': variant === 'favorite' }]">
     <div class="module-header">
       <h3>{{ module.name }}</h3>
+      <!-- Show FavoriteButton for normal cards, favorite badge for favorite cards -->
       <FavoriteButton 
+        v-if="variant === 'default'"
         :is-favorite="!!module.isFavoriet"
         @toggle="$emit('toggleFavorite', module)"
       />
+      <span v-else class="favorite-badge">❤️ Favoriet</span>
     </div>
     <p class="module-description">{{ module.shortdescription }}</p>
     <div class="module-meta">
@@ -17,26 +20,38 @@
       <button @click="$emit('showDetails', module)" class="btn btn-secondary">
         Meer info
       </button>
+      <!-- Different action buttons based on variant -->
       <button 
+        v-if="variant === 'default'"
         @click="$emit('toggleFavorite', module)"
         :class="['btn', module.isFavoriet ? 'btn-danger' : 'btn-primary']"
       >
         {{ module.isFavoriet ? 'Verwijder uit favorieten' : 'Toevoegen aan favorieten' }}
+      </button>
+      <button 
+        v-else
+        @click="$emit('removeFavorite', module)" 
+        class="btn btn-danger"
+      >
+        Verwijderen uit favorieten
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import type { iVkm } from '@/vkm/iVkm'
+// Update the path below to the correct relative location of your iVkm type file
+import type { iVkm } from '../../vkm/iVkm'
 import FavoriteButton from '../atoms/FavoriteButton.vue'
 
 defineProps<{
   module: iVkm
+  variant?: 'default' | 'favorite'
 }>()
 
 defineEmits<{
   toggleFavorite: [module: iVkm]
+  removeFavorite: [module: iVkm]
   showDetails: [module: iVkm]
 }>()
 </script>
@@ -135,5 +150,22 @@ defineEmits<{
 
 .btn-danger:hover {
   background: #c82333;
+}
+
+/* Favorite variant styling */
+.module-card.is-favorite {
+  border: 2px solid #ff6b6b;
+  position: relative;
+}
+
+.favorite-badge {
+  background: linear-gradient(135deg, #ff6b6b, #ff5252);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
 }
 </style>
