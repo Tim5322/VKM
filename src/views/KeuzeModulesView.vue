@@ -10,13 +10,23 @@
           type="text" 
           placeholder="Zoek keuzemodules..." 
           class="search-input"
+          @input="searchModules"
         >
-        <select v-model="selectedCategory" class="category-select">
-          <option value="">Alle categorieën</option>
-          <option value="programming">Programmeren</option>
-          <option value="design">Design</option>
-          <option value="business">Business</option>
-          <option value="data">Data Science</option>
+        <select v-model="selectedLocation" class="filter-select" @change="searchModules">
+          <option value="">Alle locaties</option>
+          <option value="Den Bosch">Den Bosch</option>
+          <option value="Breda">Breda</option>
+          <option value="Tilburg">Tilburg</option>
+        </select>
+        <select v-model="selectedLevel" class="filter-select" @change="searchModules">
+          <option value="">Alle niveaus</option>
+          <option value="NLQF5">NLQF5</option>
+          <option value="NLQF6">NLQF6</option>
+        </select>
+        <select v-model="selectedCredits" class="filter-select" @change="searchModules">
+          <option value="">Alle studiepunten</option>
+          <option value="15">15 SP</option>
+          <option value="30">30 SP</option>
         </select>
       </div>
       
@@ -24,26 +34,32 @@
         <p>Keuzemodules laden...</p>
       </div>
       
+      <div class="error" v-else-if="error">
+        <p>{{ error }}</p>
+        <button @click="loadModules" class="btn btn-primary">Opnieuw proberen</button>
+      </div>
+      
       <div class="modules-grid" v-else>
-        <div v-for="module in filteredModules" :key="module.id" class="module-card">
+        <div v-for="module in modules" :key="module._id" class="module-card">
           <div class="module-header">
-            <h3>{{ module.naam }}</h3>
+            <h3>{{ module.name }}</h3>
             <button 
-              @click="toggleFavoriet(module.id)"
+              @click="toggleFavoriet(module)"
               :class="['favorite-btn', { 'is-favorite': module.isFavoriet }]"
             >
               ❤️
             </button>
           </div>
-          <p class="module-description">{{ module.beschrijving }}</p>
+          <p class="module-description">{{ module.shortdescription }}</p>
           <div class="module-meta">
-            <span class="category-tag">{{ module.categorie }}</span>
-            <span class="credits">{{ module.studiepunten }} SP</span>
+            <span class="location-tag">📍 {{ module.location }}</span>
+            <span class="level-tag">🎓 {{ module.level }}</span>
+            <span class="credits">{{ module.studycredit }} SP</span>
           </div>
           <div class="module-actions">
-            <button class="btn btn-outline">Meer info</button>
+            <button @click="showModuleDetails(module)" class="btn btn-outline">Meer info</button>
             <button 
-              @click="toggleFavoriet(module.id)"
+              @click="toggleFavoriet(module)"
               :class="['btn', module.isFavoriet ? 'btn-danger' : 'btn-primary']"
             >
               {{ module.isFavoriet ? 'Verwijder uit favorieten' : 'Toevoegen aan favorieten' }}
@@ -51,92 +67,81 @@
           </div>
         </div>
       </div>
+      
+      <div v-if="!isLoading && !error && modules.length === 0" class="empty-state">
+        <h3>Geen keuzemodules gevonden</h3>
+        <p>Probeer je zoekcriteria aan te passen.</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
+import { KeuzeModulesService } from '@/services/keuzemodules.service'
+import type { iVkm } from '@/vkm/iVkm'
 
-interface KeuzeModule {
-  id: number
-  naam: string
-  beschrijving: string
-  categorie: string
-  studiepunten: number
-  isFavoriet: boolean
+const modules = ref<iVkm[]>([])
+const isLoading = ref(true)
+const error = ref('')
+const searchQuery = ref('')
+const selectedLocation = ref('')
+const selectedLevel = ref('')
+const selectedCredits = ref('')
+
+let searchTimeout: ReturnType<typeof setTimeout>
+
+const searchModules = () => {
+  clearTimeout(searchTimeout)
+  searchTimeout = setTimeout(async () => {
+    await loadModules()
+  }, 300)
 }
 
-const modules = ref<KeuzeModule[]>([])
-const isLoading = ref(true)
-const searchQuery = ref('')
-const selectedCategory = ref('')
-
-const filteredModules = computed(() => {
-  return modules.value.filter(module => {
-    const matchesSearch = module.naam.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-                         module.beschrijving.toLowerCase().includes(searchQuery.value.toLowerCase())
-    const matchesCategory = !selectedCategory.value || module.categorie === selectedCategory.value
+const loadModules = async () => {
+  try {
+    isLoading.value = true
+    error.value = ''
     
-    return matchesSearch && matchesCategory
-  })
-})
-
-const toggleFavoriet = (moduleId: number) => {
-  const module = modules.value.find(m => m.id === moduleId)
-  if (module) {
-    module.isFavoriet = !module.isFavoriet
-    // Hier zou je de favoriet status naar de API sturen
+    let result: iVkm[]
+    
+    // Als er filters zijn, gebruik search endpoint
+    if (searchQuery.value || selectedLocation.value || selectedLevel.value || selectedCredits.value) {
+      result = await KeuzeModulesService.searchKeuzeModules({
+        name: searchQuery.value || undefined,
+        location: selectedLocation.value || undefined,
+        level: selectedLevel.value || undefined,
+        studycredit: selectedCredits.value ? Number(selectedCredits.value) : undefined
+      })
+    } else {
+      // Anders alle modules ophalen
+      result = await KeuzeModulesService.getAllKeuzeModules()
+    }
+    
+    modules.value = result.map(module => ({
+      ...module,
+      isFavoriet: false // TODO: Haal favorieten status op van API
+    }))
+    
+  } catch (err) {
+    console.error('Error loading modules:', err)
+    error.value = 'Er is een fout opgetreden bij het laden van de keuzemodules.'
+  } finally {
+    isLoading.value = false
   }
 }
 
-onMounted(async () => {
-  // Simuleer API call met dummy data
-  setTimeout(() => {
-    modules.value = [
-      {
-        id: 1,
-        naam: 'Advanced Web Development',
-        beschrijving: 'Leer moderne web development technieken met React, Vue en Node.js',
-        categorie: 'programming',
-        studiepunten: 6,
-        isFavoriet: false
-      },
-      {
-        id: 2,
-        naam: 'UI/UX Design Principles',
-        beschrijving: 'Ontdek de principes van gebruikersinterface en gebruikerservaring design',
-        categorie: 'design',
-        studiepunten: 4,
-        isFavoriet: false
-      },
-      {
-        id: 3,
-        naam: 'Business Analytics',
-        beschrijving: 'Leer hoe je business data analyseert en interpreteert voor betere besluitvorming',
-        categorie: 'business',
-        studiepunten: 5,
-        isFavoriet: true
-      },
-      {
-        id: 4,
-        naam: 'Machine Learning Basics',
-        beschrijving: 'Introductie tot machine learning algoritmes en hun toepassingen',
-        categorie: 'data',
-        studiepunten: 6,
-        isFavoriet: false
-      },
-      {
-        id: 5,
-        naam: 'Mobile App Development',
-        beschrijving: 'Ontwikkel native en cross-platform mobiele applicaties',
-        categorie: 'programming',
-        studiepunten: 7,
-        isFavoriet: false
-      }
-    ]
-    isLoading.value = false
-  }, 1000)
+const toggleFavoriet = (module: iVkm) => {
+  module.isFavoriet = !module.isFavoriet
+  console.log(`Module ${module.name} ${module.isFavoriet ? 'toegevoegd aan' : 'verwijderd uit'} favorieten`)
+}
+
+const showModuleDetails = (module: iVkm) => {
+  console.log('Toon details voor:', module.name)
+}
+
+onMounted(() => {
+  loadModules()
 })
 </script>
 
@@ -172,18 +177,31 @@ h1 {
   font-size: 1rem;
 }
 
-.category-select {
+.filter-select {
   padding: 0.75rem;
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
   background: white;
+  min-width: 150px;
 }
 
-.loading {
+.loading, .error {
   text-align: center;
   padding: 3rem;
   color: #6c757d;
+}
+
+.error {
+  color: #dc3545;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin-top: 2rem;
 }
 
 .modules-grid {
@@ -243,23 +261,25 @@ h1 {
 
 .module-meta {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   align-items: center;
   margin-bottom: 1rem;
 }
 
-.category-tag {
+.location-tag,
+.level-tag {
   background: #e9ecef;
   color: #495057;
   padding: 0.25rem 0.5rem;
   border-radius: 12px;
   font-size: 0.8rem;
-  text-transform: capitalize;
 }
 
 .credits {
   color: #6c757d;
   font-weight: 500;
+  margin-left: auto;
 }
 
 .module-actions {

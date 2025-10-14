@@ -12,11 +12,18 @@ type Contact = {
 }
 
 export interface iVkm { 
+    _id: string;
     id: number;
+    name: string;
     shortdescription: string;
     description: string;
     content: string; 
-    studyCredits: number;
-    location: Location;
-    contact: Contact;
+    studycredit: number;
+    location: string;
+    contact_id: number;
+    level: string;
+    learningoutcomes: string;
+    isFavoriet?: boolean; // Voor frontend gebruik
 }
+
+export { Location };
