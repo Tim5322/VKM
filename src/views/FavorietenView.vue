@@ -4,7 +4,16 @@
       <h1>Mijn Favorieten</h1>
       <p>Hier kun je je favoriete keuzemodules bekijken.</p>
       
-      <div class="empty-state" v-if="favorieten.length === 0">
+      <div class="loading" v-if="isLoading">
+        <p>Favorieten laden...</p>
+      </div>
+      
+      <div class="error" v-else-if="error">
+        <p>{{ error }}</p>
+        <button @click="loadFavorieten" class="btn btn-primary">Opnieuw proberen</button>
+      </div>
+      
+      <div class="empty-state" v-else-if="favorieten.length === 0">
         <h3>Geen favorieten gevonden</h3>
         <p>Je hebt nog geen keuzemodules toegevoegd aan je favorieten.</p>
         <RouterLink to="/keuzemodules" class="btn btn-primary">
@@ -13,12 +22,17 @@
       </div>
       
       <div class="favorieten-grid" v-else>
-        <div v-for="favoriet in favorieten" :key="favoriet.id" class="favoriet-card">
-          <h3>{{ favoriet.naam }}</h3>
-          <p>{{ favoriet.beschrijving }}</p>
+        <div v-for="favoriet in favorieten" :key="favoriet._id" class="favoriet-card">
+          <h3>{{ favoriet.name }}</h3>
+          <p>{{ favoriet.shortdescription }}</p>
+          <div class="module-meta">
+            <span class="location-tag">📍 {{ favoriet.location }}</span>
+            <span class="level-tag">🎓 {{ favoriet.level }}</span>
+            <span class="credits">{{ favoriet.studycredit }} SP</span>
+          </div>
           <div class="card-actions">
-            <button @click="removeFavoriet(favoriet.id)" class="btn btn-danger">
-              Verwijderen
+            <button @click="removeFavoriet(favoriet)" class="btn btn-danger">
+              Verwijderen uit favorieten
             </button>
           </div>
         </div>
@@ -30,22 +44,38 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
+import { FavorietenService } from '@/services/favorieten.service'
+import type { iVkm } from '@/vkm/iVkm'
 
-interface Favoriet {
-  id: number
-  naam: string
-  beschrijving: string
+const favorieten = ref<iVkm[]>([])
+const isLoading = ref(true)
+const error = ref('')
+
+const removeFavoriet = async (module: iVkm) => {
+  try {
+    await FavorietenService.removeFavoriet(module.id)
+    favorieten.value = favorieten.value.filter(f => f.id !== module.id)
+  } catch (err) {
+    console.error('Error removing favoriet:', err)
+    error.value = 'Er is een fout opgetreden bij het verwijderen van de favoriet.'
+  }
 }
 
-const favorieten = ref<Favoriet[]>([])
-
-const removeFavoriet = (id: number) => {
-  favorieten.value = favorieten.value.filter(f => f.id !== id)
+const loadFavorieten = async () => {
+  try {
+    isLoading.value = true
+    error.value = ''
+    favorieten.value = await FavorietenService.getFavorieten()
+  } catch (err) {
+    console.error('Error loading favorieten:', err)
+    error.value = 'Er is een fout opgetreden bij het laden van favorieten.'
+  } finally {
+    isLoading.value = false
+  }
 }
 
 onMounted(() => {
-  // Hier zou je de favorieten van de API ophalen
-  // Voor nu een lege array
+  loadFavorieten()
 })
 </script>
 
@@ -106,6 +136,30 @@ h1 {
 .favoriet-card p {
   color: #6c757d;
   margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.module-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.location-tag,
+.level-tag {
+  background: #e9ecef;
+  color: #495057;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+}
+
+.credits {
+  color: #6c757d;
+  font-weight: 500;
+  margin-left: auto;
 }
 
 .card-actions {

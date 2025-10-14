@@ -20,9 +20,12 @@ export class ApiService {
   // Generieke GET request
   static async get(endpoint: string) {
     try {
-      const response = await fetch(getApiUrl(endpoint), {
+      const url = getApiUrl(endpoint)
+      const headers = this.getHeaders()
+      
+      const response = await fetch(url, {
         method: 'GET',
-        headers: this.getHeaders(),
+        headers: headers,
       })
       
       if (!response.ok) {
@@ -32,11 +35,14 @@ export class ApiService {
           window.location.href = '/login'
           return
         }
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorText = await response.text()
+        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`)
       }
       
+      const data = await response.json()
+      
       return {
-        data: await response.json(),
+        data: data,
         status: response.status
       }
     } catch (error) {

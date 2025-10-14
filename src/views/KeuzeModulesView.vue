@@ -79,6 +79,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { KeuzeModulesService } from '@/services/keuzemodules.service'
+import { FavorietenService } from '@/services/favorieten.service'
 import type { iVkm } from '@/vkm/iVkm'
 
 const modules = ref<iVkm[]>([])
@@ -88,6 +89,7 @@ const searchQuery = ref('')
 const selectedLocation = ref('')
 const selectedLevel = ref('')
 const selectedCredits = ref('')
+const favorietenIds = ref<number[]>([])
 
 let searchTimeout: ReturnType<typeof setTimeout>
 
@@ -99,41 +101,41 @@ const searchModules = () => {
 }
 
 const loadModules = async () => {
+  isLoading.value = true
+  error.value = ''
+  
   try {
-    isLoading.value = true
-    error.value = ''
+    console.log('🔄 Starting to load modules...')
     
-    let result: iVkm[]
+    // Test: Probeer gewoon alle keuzemodules op te halen
+    const result = await KeuzeModulesService.getAllKeuzeModules()
+    console.log('📊 Modules result:', result)
     
-    // Als er filters zijn, gebruik search endpoint
-    if (searchQuery.value || selectedLocation.value || selectedLevel.value || selectedCredits.value) {
-      result = await KeuzeModulesService.searchKeuzeModules({
-        name: searchQuery.value || undefined,
-        location: selectedLocation.value || undefined,
-        level: selectedLevel.value || undefined,
-        studycredit: selectedCredits.value ? Number(selectedCredits.value) : undefined
-      })
-    } else {
-      // Anders alle modules ophalen
-      result = await KeuzeModulesService.getAllKeuzeModules()
+    if (!result || result.length === 0) {
+      console.warn('⚠️ No modules returned from API')
+      error.value = 'Geen keuzemodules gevonden.'
+      return
     }
     
+    // Zet modules (zonder favorieten voor nu)
     modules.value = result.map(module => ({
       ...module,
-      isFavoriet: false // TODO: Haal favorieten status op van API
+      isFavoriet: false // Voor nu gewoon alles op false
     }))
     
-  } catch (err) {
-    console.error('Error loading modules:', err)
-    error.value = 'Er is een fout opgetreden bij het laden van de keuzemodules.'
+    console.log('✅ Modules loaded successfully:', modules.value.length)
+    
+  } catch (err: any) {
+    console.error('❌ Error loading modules:', err)
+    error.value = `Fout bij laden keuzemodules: ${err.message || 'Onbekende fout'}`
   } finally {
     isLoading.value = false
   }
 }
 
-const toggleFavoriet = (module: iVkm) => {
-  module.isFavoriet = !module.isFavoriet
-  console.log(`Module ${module.name} ${module.isFavoriet ? 'toegevoegd aan' : 'verwijderd uit'} favorieten`)
+const toggleFavoriet = async (module: iVkm) => {
+  alert('Favorieten functionaliteit tijdelijk uitgeschakeld voor debugging')
+  console.log('Favoriet toggle disabled for debugging:', module.name)
 }
 
 const showModuleDetails = (module: iVkm) => {

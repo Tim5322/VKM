@@ -18,7 +18,7 @@ export class KeuzeModulesService {
       return response?.data || []
     } catch (error) {
       console.error('Error fetching keuzemodules:', error)
-      return []
+      throw error
     }
   }
 
@@ -37,7 +37,7 @@ export class KeuzeModulesService {
       return response?.data || []
     } catch (error) {
       console.error('Error searching keuzemodules:', error)
-      return []
+      throw error
     }
   }
 
