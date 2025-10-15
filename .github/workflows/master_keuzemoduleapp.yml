@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Vue app to Azure Web App - KeuzeModuleAPP
+name: Build and Deploy Vue SPA to Azure Static Web App
 
 on:
   push:
@@ -9,69 +9,34 @@ on:
       - master
   workflow_dispatch:
 
-permissions:
-  contents: read
-  id-token: write  # nodig voor SPN login
-
 jobs:
-  build:
+  build_and_deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
+      # 1. Checkout the repository
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      # 2. Setup Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '22.x'
 
+      # 3. Install dependencies
       - name: Install dependencies
         run: npm install
 
-      - name: Build Vue app with Vite
+      # 4. Build the Vue app
+      - name: Build
         run: npm run build
 
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      # 5. Deploy to Azure Static Web App
+      - name: Deploy to Azure Static Web App
+        uses: Azure/static-web-apps-deploy@v1
         with:
-          name: build
-          path: ./dist   # upload de volledige dist map
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: build
-    permissions:
-      contents: read
-      id-token: write
-
-    steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: ./dist
-
-      - name: Prepare deploy folder
-        run: |
-          mkdir deploy
-          cp -r ./dist/* ./deploy/
-
-      - name: Login to Azure
-        uses: azure/login@v2
-        with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F0730467D8B349E39EA3DC9BD97ECA31 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_DBC83CD18A9945DE84818BA347EB0A4B }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D0B92BB8F444D6F8A5237632DC0AD20 }}
-
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: 'KeuzeModuleAPP'
-          slot-name: 'Production'
-          package: ./deploy
-
-
-          
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_BLACK_STONE_059D76C03 }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "/"        # root van project, waar package.json staat
+          output_location: "dist"  # Vite build output
