@@ -33,7 +33,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: ./dist   # alleen de build-output uploaden
+          path: ./dist   # alleen build-output uploaden
 
   deploy:
     runs-on: ubuntu-latest
@@ -48,13 +48,16 @@ jobs:
           name: build
           path: ./dist
 
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_F0730467D8B349E39EA3DC9BD97ECA31 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_DBC83CD18A9945DE84818BA347E0A4B }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_3D0B92BB8F444D6F8A5237632DC0AD20 }}
+
       - name: Deploy to Azure Web App
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
           app-name: 'KeuzeModuleAPP'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           package: ./dist
-
-          
