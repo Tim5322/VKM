@@ -1,10 +1,10 @@
 <template>
-  <div :class="['module-card', { 'is-favorite': variant === 'favorite' }]">
+  <div :class="['module-card', { 'is-favorite': props.variant === 'favorite' }]">
     <div class="module-header">
       <h3>{{ module.name }}</h3>
       <!-- Show FavoriteButton for normal cards, favorite badge for favorite cards -->
       <FavoriteButton 
-        v-if="variant === 'default'"
+        v-if="props.variant === 'default'"
         :is-favorite="!!module.isFavoriet"
         @toggle="$emit('toggleFavorite', module)"
       />
@@ -22,7 +22,7 @@
       </button>
       <!-- Different action buttons based on variant -->
       <button 
-        v-if="variant === 'default'"
+        v-if="props.variant === 'default'"
         @click="$emit('toggleFavorite', module)"
         :class="['btn', module.isFavoriet ? 'btn-danger' : 'btn-primary']"
       >
@@ -44,10 +44,13 @@
 import type { iVkm } from '../../vkm/iVkm'
 import FavoriteButton from '../atoms/FavoriteButton.vue'
 
-defineProps<{
+// Met default waarde voor variant
+const props = withDefaults(defineProps<{
   module: iVkm
   variant?: 'default' | 'favorite'
-}>()
+}>(), {
+  variant: 'default'
+})
 
 defineEmits<{
   toggleFavorite: [module: iVkm]
