@@ -11,7 +11,7 @@ on:
 
 permissions:
   contents: read
-  id-token: write   # nodig voor SPN login
+  id-token: write  # nodig voor SPN login
 
 jobs:
   build:
@@ -28,16 +28,17 @@ jobs:
         with:
           node-version: '22.x'
 
-      - name: Install dependencies and build
-        run: |
-          npm install
-          npm run build
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Vue app with Vite
+        run: npm run build
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: ./dist
+          path: ./dist   # upload de volledige dist map
 
   deploy:
     runs-on: ubuntu-latest
@@ -53,7 +54,7 @@ jobs:
           name: build
           path: ./dist
 
-      - name: Prepare files for deploy
+      - name: Prepare deploy folder
         run: |
           mkdir deploy
           cp -r ./dist/* ./deploy/
@@ -71,5 +72,6 @@ jobs:
           app-name: 'KeuzeModuleAPP'
           slot-name: 'Production'
           package: ./deploy
+
 
           
