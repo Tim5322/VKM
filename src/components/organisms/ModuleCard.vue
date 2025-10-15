@@ -17,9 +17,6 @@
       <span class="credits">{{ module.studycredit }} SP</span>
     </div>
     <div class="card-actions">
-      <button @click="$emit('showDetails', module)" class="btn btn-secondary">
-        Meer info
-      </button>
       <!-- Different action buttons based on variant -->
       <button 
         v-if="props.variant === 'default'"
@@ -55,7 +52,6 @@ const props = withDefaults(defineProps<{
 defineEmits<{
   toggleFavorite: [module: iVkm]
   removeFavorite: [module: iVkm]
-  showDetails: [module: iVkm]
 }>()
 </script>
 
