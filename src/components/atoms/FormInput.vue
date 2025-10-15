@@ -1,16 +1,21 @@
 <template>
   <div class="form-input">
     <label v-if="label" :for="inputId" class="input-label">{{ label }}</label>
-    <input 
-      :id="inputId"
-      :value="modelValue"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-      :type="type"
-      :placeholder="placeholder"
-      :required="required"
-      class="input-field"
-      :class="{ 'error': hasError }"
-    >
+    <div class="input-wrapper">
+      <input
+        :id="inputId"
+        :value="modelValue"
+        @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
+        :type="type"
+        :placeholder="placeholder"
+        :required="required"
+        class="input-field"
+        :class="{ 'error': hasError }"
+      />
+      <div class="input-append">
+        <slot name="append" />
+      </div>
+    </div>
     <span v-if="errorMessage" class="error-message">{{ errorMessage }}</span>
   </div>
 </template>
@@ -41,6 +46,7 @@ const hasError = computed(() => !!props.errorMessage)
 <style scoped>
 .form-input {
   margin-bottom: 1rem;
+  position: relative;
 }
 
 .input-label {
@@ -53,13 +59,37 @@ const hasError = computed(() => !!props.errorMessage)
 
 .input-field {
   width: 100%;
-  padding: 0.75rem 1rem;
+  /* meer rechter padding zodat icons/buttons in absolute positie niet boven de tekst komen */
+  padding: 0.75rem 2.75rem 0.75rem 1rem;
+  min-height: 44px; /* consistentere hoogte zodat overlay icons netjes centreren */
   border: 2px solid #d1d5db;
   border-radius: 8px;
   font-size: 1rem;
   transition: all 0.2s ease;
   background: white;
   box-sizing: border-box;
+}
+
+.input-append {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  z-index: 3; /* zorg dat knop boven het input element staat */
+}
+
+.input-wrapper {
+  position: relative;
+}
+
+.input-append > * {
+  background: transparent;
+  border: none;
+  padding: 0;
+  margin: 0;
+  cursor: pointer;
 }
 
 .input-field:focus {

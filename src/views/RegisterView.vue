@@ -77,6 +77,9 @@ const handleRegister = async (userData: {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  width: 100%;
+  max-width: 900px;
+  padding: 0 1rem;
 }
 
 .login-link {

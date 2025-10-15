@@ -41,23 +41,39 @@
       />
     </div>
     
-    <div class="form-group">
-      <FormInput
-        v-model="formData.password"
-        :type="showPassword ? 'text' : 'password'"
-        placeholder="Wachtwoord (min. 6 karakters)"
-        required
-        :disabled="isLoading"
-      />
-      <button 
-        type="button" 
-        class="password-toggle"
-        @click="showPassword = !showPassword"
-        :disabled="isLoading"
-      >
-        {{ showPassword ? '🙈' : '👁️' }}
-      </button>
-    </div>
+      <div class="form-group">
+        <FormInput
+          v-model="formData.password"
+          :type="showPassword ? 'text' : 'password'"
+          placeholder="Wachtwoord (min. 6 karakters)"
+          required
+          :disabled="isLoading"
+        >
+          <template #append>
+            <button
+              type="button"
+              class="password-toggle"
+              @click="showPassword = !showPassword"
+              :aria-pressed="showPassword"
+              :title="showPassword ? 'Verberg wachtwoord' : 'Toon wachtwoord'"
+              :disabled="isLoading"
+            >
+              <span v-if="showPassword" class="sr-only">Verberg wachtwoord</span>
+              <span v-else class="sr-only">Toon wachtwoord</span>
+              <!-- eye-off (hidden) -->
+              <svg v-if="showPassword" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M17.94 17.94A10 10 0 0 1 12 19c-4.97 0-9.12-3.11-10-7 0.55-2.19 1.98-4.11 3.86-5.45"></path>
+                <path d="M1 1l22 22"></path>
+              </svg>
+              <!-- eye (visible) -->
+              <svg v-else xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
+          </template>
+        </FormInput>
+      </div>
     
     <div v-if="errorMessage" class="error-message">
       {{ errorMessage }}
@@ -158,12 +174,20 @@ defineExpose({
 
 <style scoped>
 .register-form {
-  max-width: 400px;
+  width: 100%;
+  max-width: 640px;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 1.5rem;
   background: white;
   border-radius: 12px;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .register-form {
+    padding: 2rem;
+  }
 }
 
 .register-form h2 {
@@ -190,6 +214,25 @@ defineExpose({
   font-size: 1.2rem;
   color: #6b7280;
   transition: color 0.2s;
+  z-index: 2; /* zorgt dat knop boven input verschijnt */
+}
+
+.password-toggle svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+}
+
+.sr-only {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .password-toggle:hover:not(:disabled) {
