@@ -9,11 +9,15 @@ on:
       - master
   workflow_dispatch:
 
+permissions:
+  contents: read
+  id-token: write   # nodig voor SPN login
+
 jobs:
   build:
     runs-on: ubuntu-latest
     permissions:
-      contents: read # Required for actions/checkout
+      contents: read
 
     steps:
       - name: Checkout repo
@@ -33,13 +37,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build
-          path: ./dist  # alleen de build output uploaden
+          path: ./dist
 
   deploy:
     runs-on: ubuntu-latest
     needs: build
     permissions:
-      contents: read # Required for actions/checkout
+      contents: read
+      id-token: write
 
     steps:
       - name: Download build artifact
@@ -48,7 +53,7 @@ jobs:
           name: build
           path: ./dist
 
-      - name: Move build files to root for deploy
+      - name: Prepare files for deploy
         run: |
           mkdir deploy
           cp -r ./dist/* ./deploy/
@@ -66,3 +71,5 @@ jobs:
           app-name: 'KeuzeModuleAPP'
           slot-name: 'Production'
           package: ./deploy
+
+          
