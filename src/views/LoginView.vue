@@ -18,8 +18,6 @@ import { ref } from 'vue'
 import { useRouter, RouterLink } from 'vue-router'
 import { ApiService } from '@/services/vkm-api.service'
 import { useAuth } from '@/composables/useAuth'
-
-// Import Atomic Design componenten
 import LoginForm from '@/components/molecules/LoginForm.vue'
 
 const router = useRouter()

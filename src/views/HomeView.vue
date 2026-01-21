@@ -5,7 +5,6 @@ import { useAuth } from '../composables/useAuth'
 const router = useRouter()
 const { isLoggedIn } = useAuth()
 
-// Navigatie functies
 const goToKeuzemodules = () => {
   router.push('/keuzemodules')
 }
@@ -17,7 +16,6 @@ const goToFavorieten = () => {
 
 <template>
   <div class="homepage">
-    <!-- Hero sectie -->
     <section class="hero">
       <div class="hero-content">
         <h1 class="hero-title">Vrije Keuze Modules</h1>
@@ -25,7 +23,6 @@ const goToFavorieten = () => {
           Op deze site vind je alle keuzemodules die je dit jaar kan kiezen, neem je tijd en kijk rond.
         </p>
         
-        <!-- Als ingelogd -->
         <div v-if="isLoggedIn" class="hero-actions">
           <button @click="goToFavorieten" class="btn btn-primary">
             Mijn Favorieten
@@ -35,7 +32,6 @@ const goToFavorieten = () => {
           </button>
         </div>
         
-        <!-- Als niet ingelogd -->
         <div v-else class="hero-actions">
           <router-link to="/register" class="btn btn-primary">
             Account Aanmaken
@@ -47,7 +43,6 @@ const goToFavorieten = () => {
       </div>
     </section>
 
-    <!-- Info sectie -->
     <section class="info-section">
       <div class="container">
         <h2>Ontdek Keuzemodules</h2>
@@ -77,7 +72,6 @@ const goToFavorieten = () => {
       </div>
     </section>
 
-    <!-- CTA sectie (alleen als niet ingelogd) -->
     <section v-if="!isLoggedIn" class="cta-section">
       <div class="container">
         <h2>Wil jij zien welke keuzemodules er zijn?</h2>
@@ -95,7 +89,6 @@ const goToFavorieten = () => {
   min-height: calc(100vh - 70px);
 }
 
-/* Hero sectie */
 .hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -129,7 +122,6 @@ const goToFavorieten = () => {
   flex-wrap: wrap;
 }
 
-/* Buttons */
 .btn {
   display: inline-block;
   padding: 14px 28px;
@@ -177,7 +169,6 @@ const goToFavorieten = () => {
   padding: 0 2rem;
 }
 
-/* Info sectie */
 .info-section {
   padding: 5rem 0;
   background: white;
@@ -236,7 +227,6 @@ const goToFavorieten = () => {
   font-size: 1rem;
 }
 
-/* CTA sectie */
 .cta-section {
   padding: 4rem 0;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
@@ -255,7 +245,6 @@ const goToFavorieten = () => {
   margin-bottom: 2rem;
 }
 
-/* Responsive design */
 @media (max-width: 768px) {
   .hero {
     padding: 3rem 1rem;

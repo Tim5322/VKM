@@ -4,19 +4,15 @@
       <h1>Keuzemodules</h1>
       <p>Ontdek alle beschikbare keuzemodules en voeg ze toe aan je favorieten.</p>
       
-      <!-- Gebruik het nieuwe SearchFilter component -->
       <SearchFilter @search="handleSearch" />
       
-      <!-- Loading state met skeleton -->
       <SkeletonGrid v-if="isLoading" :count="6" />
       
-      <!-- Error state -->
       <div class="error" v-else-if="error">
         <p>{{ error }}</p>
         <button @click="loadModules" class="btn btn-primary">Opnieuw proberen</button>
       </div>
       
-      <!-- Modules grid met nieuwe ModuleCard componenten -->
       <div class="modules-grid" v-else>
         <ModuleCard
           v-for="module in modules" 
@@ -41,7 +37,6 @@ import { KeuzeModulesService } from '@/services/keuzemodules.service'
 import { FavorietenService } from '@/services/favorieten.service'
 import type { iVkm } from '@/vkm/iVkm'
 
-// Import componenten volgens Atomic Design
 import SearchFilter from '@/components/molecules/SearchFilter.vue'
 import ModuleCard from '@/components/organisms/ModuleCard.vue'
 import SkeletonGrid from '@/components/organisms/SkeletonGrid.vue'
@@ -51,7 +46,6 @@ const isLoading = ref(true)
 const error = ref('')
 const favorietenIds = ref<number[]>([])
 
-// Nieuwe handleSearch functie voor SearchFilter component
 const handleSearch = async (filters: {
   name?: string
   location?: string
@@ -69,7 +63,6 @@ const handleSearch = async (filters: {
       result = await KeuzeModulesService.getAllKeuzeModules()
     }
     
-    // Favoriet IDs ophalen
     try {
       favorietenIds.value = await FavorietenService.getFavorietenIds()
       if (!Array.isArray(favorietenIds.value)) {
@@ -79,7 +72,6 @@ const handleSearch = async (filters: {
       favorietenIds.value = []
     }
     
-    // Modules instellen met favoriet status
     modules.value = result.map(module => ({
       ...module,
       isFavoriet: Array.isArray(favorietenIds.value) && favorietenIds.value.includes(module.id)
@@ -94,7 +86,7 @@ const handleSearch = async (filters: {
 }
 
 const loadModules = async () => {
-  await handleSearch({}) // Laad alle modules zonder filters
+  await handleSearch({})
 }
 
 const toggleFavoriet = async (module: iVkm) => {
@@ -103,31 +95,24 @@ const toggleFavoriet = async (module: iVkm) => {
     
     const oldStatus = module.isFavoriet || false
     
-    // Check voor maximum van 5 favorieten bij toevoegen
     if (!oldStatus) {
-      // Controleer huidige favorieten count
       const currentFavorites = modules.value.filter(m => m.isFavoriet).length
       if (currentFavorites >= 5) {
         alert('Je kunt maximaal 5 favorieten hebben! Verwijder eerst een favoriet voordat je een nieuwe toevoegt.')
-        return // Stop hier, geen API call en geen UI update
+        return
       }
     }
     
-    // Doe de API call EERST voordat we de UI updaten
     if (oldStatus) {
-      // Verwijderen uit favorieten: DELETE /favorieten/:id
       console.log('🗑️ Removing from favorites...')
       await FavorietenService.removeFavoriet(module.id)
     } else {
-      // Toevoegen aan favorieten: PUT /favorieten/:id
       console.log('➕ Adding to favorites...')
       await FavorietenService.addFavoriet(module.id)
     }
     
-    // Alleen als de API call succesvol was, update dan de UI
     module.isFavoriet = !oldStatus
     
-    // Update favorietenIds array (met veiligheidscheck)
     if (!Array.isArray(favorietenIds.value)) {
       favorietenIds.value = []
     }
@@ -144,9 +129,6 @@ const toggleFavoriet = async (module: iVkm) => {
     
   } catch (error: any) {
     console.error('❌ Error toggling favoriet:', error)
-    
-    // Als er een error is, herstel de originele staat
-    // (de UI is nog niet geüpdatet omdat we dat pas na succesvolle API call doen)
     
     if (error.message?.includes('409')) {
       alert('Deze module staat al in je favorieten!')
@@ -168,7 +150,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Alleen nog basis layout - alle component styling zit in de componenten! */
 .keuzemodules-view {
   padding: 2rem 0;
 }

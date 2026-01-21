@@ -39,8 +39,6 @@ import { ref, onMounted } from 'vue'
 import { RouterLink } from 'vue-router'
 import { FavorietenService } from '@/services/favorieten.service'
 import type { iVkm } from '@/vkm/iVkm'
-
-// Import Atomic Design componenten
 import ModuleCard from '@/components/organisms/ModuleCard.vue'
 
 const favorieten = ref<iVkm[]>([])
@@ -76,7 +74,6 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* Veel minder CSS! Component styling zit in FavoriteModuleCard */
 .favorieten-view {
   padding: 2rem 0;
 }

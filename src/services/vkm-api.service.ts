@@ -1,9 +1,7 @@
 import { getApiUrl, config } from '../config/environment'
 
-// Basis API service voor communicatie met NestJS backend
 export class ApiService {
   
-  // Helper functie om headers op te halen inclusief JWT token
   private static getHeaders(): Record<string, string> {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -17,7 +15,6 @@ export class ApiService {
     return headers
   }
   
-  // Generieke GET request
   static async get(endpoint: string) {
     try {
       const url = getApiUrl(endpoint)
@@ -51,10 +48,8 @@ export class ApiService {
     }
   }
   
-  // Generieke POST request
   static async post(endpoint: string, data: any, options: { skipAuth?: boolean } = {}) {
     try {
-      // Voor login endpoint geen auth header sturen
       const headers = options.skipAuth ? 
         { 'Content-Type': 'application/json' } : 
         this.getHeaders()
@@ -66,14 +61,12 @@ export class ApiService {
       })
       
       if (!response.ok) {
-        // Als 401 Unauthorized, verwijder token en redirect naar login (maar niet voor login zelf)
         if (response.status === 401 && !options.skipAuth) {
           localStorage.removeItem('authToken')
           window.location.href = '/login'
           return
         }
         
-        // Voor login endpoint, probeer response body te lezen voor betere error message
         if (endpoint === '/auth/login') {
           try {
             const errorData = await response.json()
@@ -98,7 +91,6 @@ export class ApiService {
     }
   }
   
-  // PUT request
   static async put(endpoint: string, data: any) {
     try {
       const response = await fetch(getApiUrl(endpoint), {
@@ -126,7 +118,6 @@ export class ApiService {
     }
   }
   
-  // DELETE request
   static async delete(endpoint: string) {
     try {
       const response = await fetch(getApiUrl(endpoint), {
@@ -153,12 +144,10 @@ export class ApiService {
     }
   }
   
-  // Check of NestJS backend beschikbaar is
   static async checkBackendHealth(): Promise<boolean> {
     try {
-      // AbortController voor timeout
       const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 5000) // 5 seconden timeout
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
       
       const response = await fetch(`${config.backendUrl}/health`, {
         method: 'GET',
@@ -173,8 +162,3 @@ export class ApiService {
     }
   }
 }
-
-// Voorbeeld van hoe je het kunt gebruiken:
-// const result = await ApiService.get('/api/your-endpoint')
-// const data = result.data
-// const result = await ApiService.post('/api/your-endpoint', { some: 'data' })
